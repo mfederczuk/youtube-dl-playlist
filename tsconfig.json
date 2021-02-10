@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"declarationDir": "types",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"noImplicitAny": true,
+		"outDir": "out",
+		"removeComments": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ES2019"
+	},
+	"include": ["src"],
+	"exclude": ["node_modules"]
+}

@@ -1,0 +1,14 @@
+youtube-dl-playlist is a Node.js program that uses youtube-dl to download an entire playlist loaded in from a JSON file.
+The program automatically will download all tracks with the best audio available, then convert them into mp3 files and
+add ID3v2 frames to the file.
+
+The JSON file must be an array where each item must match the following schema:
+{
+	"title": string,
+	"artist": string,
+	"album"?: string,
+	"nr"?: number,
+	"year"?: number,
+	"url": string,
+	"fallback_urls": string[]
+}

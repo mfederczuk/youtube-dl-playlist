@@ -1,0 +1,62 @@
+{
+	"name": "@mfederczuk/youtube-dl-playlist",
+	"version": "1.0.0-indev01",
+	"description": "Download an entire JSON playlist using youtube-dl",
+	"keywords": [
+		"youtube-dl"
+	],
+	"homepage": "https://github.com/mfederczuk/youtube-dl-playlist#readme",
+	"bugs": {
+		"url": "https://github.com/mfederczuk/youtube-dl-playlist/issues",
+		"email": "federczuk.michael@protonmail.com"
+	},
+	"license": "GPL-3.0-or-later",
+	"author": "Michael Federczuk <federczuk.michael@protonmail.com>",
+	"contributors": [
+		"Michael Federczuk <federczuk.michael@protonmail.com>"
+	],
+	"files": [
+		"bin",
+		"out",
+		"types"
+	],
+	"main": "out/index.js",
+	"types": "types/index.d.ts",
+	"directories": {
+		"lib": "out",
+		"bin": "bin"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mfederczuk/youtube-dl-playlist.git"
+	},
+	"scripts": {
+		"lint": "npx eslint src",
+
+		"build": "npx tsc",
+		"clean": "rm -rf out types",
+		"rebuild": "npm run clean && npm run build",
+
+		"babel": "find out -type f -name '*.js' -exec npx babel -o '{}' -- '{}' \\;",
+		"uglify": "find out -type f -name '*.js' -exec npx uglifyjs -o '{}' -- '{}' \\;",
+
+		"prepare": "npm run lint && npm run rebuild && npm run babel && npm run uglify"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.12.13",
+		"@babel/core": "^7.12.13",
+		"@babel/plugin-transform-runtime": "^7.12.15",
+		"@babel/preset-env": "^7.12.13",
+		"@types/node": "^14.14.25",
+		"@typescript-eslint/eslint-plugin": "^4.15.0",
+		"@typescript-eslint/parser": "^4.15.0",
+		"eslint": "^7.19.0",
+		"ts-node": "^9.1.1",
+		"typescript": "^4.1.5",
+		"uglify-js": "^3.12.7"
+	},
+	"dependencies": {
+		"joi": "^17.4.0",
+		"node-id3": "^0.2.2"
+	}
+}
