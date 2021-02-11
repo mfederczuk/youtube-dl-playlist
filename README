@@ -10,5 +10,5 @@ The JSON file must be an array where each item must match the following schema:
 	"nr"?: number,
 	"year"?: number,
 	"url": string,
-	"fallback_urls": string[]
+	"fallback_urls"?: string[]
 }
