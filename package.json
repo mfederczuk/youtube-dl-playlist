@@ -1,6 +1,6 @@
 {
 	"name": "@mfederczuk/youtube-dl-playlist",
-	"version": "1.0.0-indev01",
+	"version": "1.0.0-indev02",
 	"description": "Download an entire JSON playlist using youtube-dl",
 	"keywords": [
 		"youtube-dl"
@@ -56,6 +56,7 @@
 		"uglify-js": "^3.12.7"
 	},
 	"dependencies": {
+		"@babel/runtime": "^7.12.13",
 		"joi": "^17.4.0",
 		"node-id3": "^0.2.2"
 	}
