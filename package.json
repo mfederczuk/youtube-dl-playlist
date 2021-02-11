@@ -1,6 +1,6 @@
 {
 	"name": "@mfederczuk/youtube-dl-playlist",
-	"version": "1.0.0-indev02",
+	"version": "1.0.0-indev03",
 	"description": "Download an entire JSON playlist using youtube-dl",
 	"keywords": [
 		"youtube-dl"
