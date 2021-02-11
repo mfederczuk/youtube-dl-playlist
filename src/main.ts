@@ -134,6 +134,10 @@ if(validationResult.error !== undefined) {
 	process.exit(48);
 }
 
+if(validationResult.warning !== undefined) {
+	console.warn(`${cliInput.filePath}: ${validationResult.warning.message}`);
+}
+
 const playlist = validationResult.value;
 
 if(playlist === undefined) {
