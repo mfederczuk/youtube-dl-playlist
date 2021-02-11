@@ -190,6 +190,7 @@ if(cliInput.download !== false) {
 			},
 			() => {
 				console.log(`${basename}: failure`);
+				process.exitCode = 32;
 				incrementFinishedDownload();
 			}
 		);
