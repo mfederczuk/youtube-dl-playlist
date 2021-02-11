@@ -157,6 +157,42 @@ export default class Track {
 		if(res instanceof Error) throw res;
 	}
 
+	compare(other: Track): number {
+		if(this.artist !== other.artist) return this.artist.localeCompare(other.artist);
+
+		if(this.album !== other.album) {
+			if(this.album === undefined) return 1;
+			if(other.album === undefined) return -1;
+			return this.album.localeCompare(other.album);
+		}
+
+		if(this.album === undefined) {
+			if(this.title !== other.title) return this.title.localeCompare(other.title);
+
+			if(this.nr !== other.nr) {
+				if(this.nr === undefined) return 1;
+				if(other.nr === undefined) return -1;
+				return (this.nr - other.nr);
+			}
+		} else {
+			if(this.nr !== other.nr) {
+				if(this.nr === undefined) return 1;
+				if(other.nr === undefined) return -1;
+				return (this.nr - other.nr);
+			}
+
+			if(this.title !== other.title) return this.title.localeCompare(other.title);
+		}
+
+		if(this.year !== other.year) {
+			if(this.year === undefined) return 1;
+			if(other.year === undefined) return -1;
+			return (this.year - other.year);
+		}
+
+		return 0;
+	}
+
 	toJSON(): TrackJSON {
 		return {
 			title: this.title,

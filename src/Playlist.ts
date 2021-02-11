@@ -230,31 +230,7 @@ export default class Playlist extends Map<string, Track> {
 
 	toJSON(): PlaylistJSON {
 		return [...this.values()]
-			.sort((a, b) => {
-				if(a.artist !== b.artist) return a.artist.localeCompare(b.artist);
-
-				if(a.album !== b.album) {
-					if(a.album === undefined) return 1;
-					if(b.album === undefined) return -1;
-					return a.album.localeCompare(b.album);
-				}
-
-				if(a.title !== b.title) return a.title.localeCompare(b.title);
-
-				if(a.nr !== b.nr) {
-					if(a.nr === undefined) return 1;
-					if(b.nr === undefined) return -1;
-					return (b.nr - a.nr);
-				}
-
-				if(a.year !== b.year) {
-					if(a.year === undefined) return 1;
-					if(b.year === undefined) return -1;
-					return (a.year - b.year);
-				}
-
-				return 0; // this shouldn't actually happen
-			})
+			.sort((a, b) => (a.compare(b)))
 			.map((track) => (track.toJSON()));
 	}
 }
