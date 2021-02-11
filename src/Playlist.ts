@@ -77,6 +77,8 @@ function downloadTracks(
 	inChildProcess: boolean
 ): Map<string, PromiseLike<void>> {
 
+	if(entries.length === 0) return new Map();
+
 	if(!inChildProcess) {
 		return entries.reduce(
 			(map, [basename, track]) => {
