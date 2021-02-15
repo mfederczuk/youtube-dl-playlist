@@ -179,35 +179,41 @@ export default class Track {
 		}
 
 		return new Promise((resolve, reject) => {
-			if(this.downloadOnly(basename)) {
-				this.writeId3v2Tags(`${basename}.mp3`).then(resolve, reject);
+			const successfulUrl = this.downloadOnly(basename);
+			if(typeof(successfulUrl) === "string") {
+				this.writeId3v2Tags(successfulUrl, `${basename}.mp3`).then(resolve, reject);
 			} else {
 				reject();
 			}
 		});
 	}
 
-	private downloadOnly(basename: string): boolean {
+	private downloadOnly(basename: string): (string | undefined) {
 		if(typeof(basename) !== "string") {
 			throw new TypeError("Argument must be a string");
 		}
 
 		if(this.urls.length === 1) {
-			return downloadUrl(basename, this.url, 0, 5);
+			const success = downloadUrl(basename, this.url, 0, 5);
+			return (success ? this.url : undefined);
 		}
 
 		for(const url of this.urls) {
 			if(downloadUrl(basename, url, 0, 3)) {
-				return true;
+				return url;
 			}
 		}
 
-		return false;
+		return undefined;
 	}
 
-	private async writeId3v2Tags(filename: string) {
-		if(typeof(filename) !== "string") {
+	private async writeId3v2Tags(usedUrl: string, filename: string) {
+		if(typeof(usedUrl) !== "string") {
 			throw new TypeError("'usedUrl' argument must be a string");
+		}
+
+		if(typeof(filename) !== "string") {
+			throw new TypeError("'filename' argument must be a string");
 		}
 
 		const res = nodeId3.write(
@@ -216,7 +222,15 @@ export default class Track {
 				artist: this.artist,
 				album: this.album,
 				trackNumber: this.nr?.toString(),
-				year: this.year?.toString()
+				year: this.year?.toString(),
+				comment: {
+					language: "eng",
+					text: "Downloaded using github.com/mfederczuk/youtube-dl-playlist"
+				},
+				userDefinedUrl: [{
+					description: "Source URL",
+					url: usedUrl
+				}]
 			},
 			filename
 		);
