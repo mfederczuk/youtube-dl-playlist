@@ -23,17 +23,26 @@ import * as nodeId3 from "node-id3";
 export interface TrackJSON {
 	title: string;
 	artist: string;
+	// eslint-disable-next-line camelcase
+	featured_artists?: string[];
 	album?: string;
 	nr?: number;
 	year?: number;
+	comments?: (string | string[]);
 	url: string;
 	// eslint-disable-next-line camelcase
 	fallback_urls?: string[];
+	other?: unknown;
 }
 
 export const trackSchema = Joi.object({
 	title: Joi.string().required(),
 	artist: Joi.string().required(),
+	// eslint-disable-next-line camelcase
+	featured_artists: Joi.array()
+		.items(Joi.link("...artist"))
+		.min(1).warn()
+		.optional(),
 	album: Joi.string().optional(),
 	nr: Joi.number()
 		.integer().warn()
@@ -43,6 +52,29 @@ export const trackSchema = Joi.object({
 		.integer().warn()
 		.greater(1500).warn()
 		.optional(),
+	comments: Joi.alternatives(
+		Joi.string()
+			.allow("")
+			.custom((value, { warn }) => {
+				if(value === "") {
+					warn("string.empty");
+				}
+				return value;
+			}),
+		Joi.array()
+			.items(
+				Joi.string()
+					.allow("")
+					.custom((value, { warn }) => {
+						if(value === "") {
+							warn("string.empty");
+						}
+						return value;
+					})
+					.pattern(/\n/, { invert: true }).warn()
+			)
+			.min(1).warn()
+	).optional(),
 	url: Joi.string()
 		.uri().warn()
 		.required(),
@@ -50,14 +82,18 @@ export const trackSchema = Joi.object({
 	fallback_urls: Joi.array()
 		.items(Joi.link("...url"))
 		.min(1).warn()
-		.optional()
+		.optional(),
+	other: Joi.any().optional()
 }).required().custom((value: TrackJSON) => new Track(
 	[value.url, ...(value.fallback_urls ?? [])],
 	value.title,
 	value.artist,
+	value.featured_artists,
 	value.album,
 	value.nr,
-	value.year
+	value.year,
+	value.comments,
+	value.other
 ));
 
 export interface TrackValidationResult extends Joi.ValidationResult {
@@ -106,13 +142,18 @@ function downloadUrl(basename: string, url: string, retry: number, maxRetries: n
 }
 
 export default class Track {
+	readonly comments?: string;
+
 	constructor(
 		readonly urls: readonly string[],
 		readonly title: string,
 		readonly artist: string,
+		readonly featuredArtists?: readonly string[],
 		readonly album?: string,
 		readonly nr?: number,
-		readonly year?: number
+		readonly year?: number,
+		comments?: (string | readonly string[]),
+		readonly other?: unknown
 	) {
 		if(!(urls instanceof Array)) {
 			throw new TypeError("'urls' argument must be an array");
@@ -134,6 +175,18 @@ export default class Track {
 			throw new TypeError("'artist' argument must be a string");
 		}
 
+		if(featuredArtists !== undefined) {
+			if(!(featuredArtists instanceof Array)) {
+				throw new TypeError("'featuredArtists' argument must be an array");
+			}
+
+			featuredArtists.forEach((featuredArtist) => {
+				if(typeof(featuredArtist) !== "string") {
+					throw new TypeError("All items of 'featuredArtists' argument must be strings");
+				}
+			});
+		}
+
 		if(album !== undefined && typeof(album) !== "string") {
 			throw new TypeError("'album' argument must be a string");
 		}
@@ -144,6 +197,24 @@ export default class Track {
 
 		if(year !== undefined && typeof(year) !== "number") {
 			throw new TypeError("'year' argument must be a number");
+		}
+
+		if(comments !== undefined) {
+			if(comments instanceof Array) {
+				comments.forEach((line) => {
+					if(typeof(line) !== "string") {
+						throw new TypeError("All items of 'comments' argument must be strings");
+					}
+				});
+
+				comments = comments.join("\n");
+			}
+
+			if(typeof(comments) !== "string") {
+				throw new TypeError("'comments' argument must be a string");
+			}
+
+			this.comments = comments.trim();
 		}
 	}
 
@@ -225,7 +296,8 @@ export default class Track {
 				year: this.year?.toString(),
 				comment: {
 					language: "eng",
-					text: "Downloaded using github.com/mfederczuk/youtube-dl-playlist"
+					text: (this.comments?.replace(/$/, "\n\n") ?? "") +
+						"Downloaded using github.com/mfederczuk/youtube-dl-playlist"
 				},
 				userDefinedUrl: [{
 					description: "Source URL",
@@ -311,15 +383,24 @@ export default class Track {
 	}
 
 	toJSON(): TrackJSON {
+		let comments: (string | string[] | undefined) = this.comments?.trim()?.split(/\n/);
+		if(comments instanceof Array && comments.length === 1) {
+			comments = comments[0];
+		}
+
 		return {
 			title: this.title,
 			artist: this.artist,
+			// eslint-disable-next-line camelcase
+			...(this.featuredArtists !== undefined ? { featured_artists: [...this.featuredArtists] } : {}),
 			...(this.album !== undefined ? { album: this.album } : {}),
 			...(this.nr !== undefined ? { nr: this.nr } : {}),
 			...(this.year !== undefined ? { year: this.year } : {}),
+			...(comments !== undefined ? { comments } : {}),
 			url: this.url,
 			// eslint-disable-next-line camelcase
-			...(this.fallbackUrls.length > 0 ? { fallback_urls: this.fallbackUrls } : {})
+			...(this.fallbackUrls.length > 0 ? { fallback_urls: this.fallbackUrls } : {}),
+			...(this.other !== undefined ? { other: this.other } : {})
 		};
 	}
 

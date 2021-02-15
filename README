@@ -6,9 +6,12 @@ The JSON file must be an array where each item must match the following schema:
 {
 	"title": string,
 	"artist": string,
+	"featured_artists"?: string[],
 	"album"?: string,
 	"nr"?: number,
 	"year"?: number,
+	"comments"?: number | string[],
 	"url": string,
-	"fallback_urls"?: string[]
+	"fallback_urls"?: string[],
+	"other"?: any
 }
