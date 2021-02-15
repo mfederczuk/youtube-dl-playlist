@@ -25,6 +25,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	static fromPromise<T>(promise: PromiseLike<T>): Deferred<T, any> {
+		if(typeof(promise) !== "object" || !("then" in promise) || !(promise.then instanceof Function)) {
+			throw new TypeError("Argument must be a thenable object");
+		}
+
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const deferred = new Deferred<T, any>();
 
@@ -77,6 +81,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 	}
 
 	onResolve(callback: (value: T) => void): void {
+		if(!(callback instanceof Function)) {
+			throw new TypeError("Argument must be a function");
+		}
+
 		if(this.result !== undefined) {
 			if(this.result[0]) {
 				callback(this.result[1]);
@@ -89,6 +97,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 	}
 
 	onReject(callback: (reason: E) => void): void {
+		if(!(callback instanceof Function)) {
+			throw new TypeError("Argument must be a function");
+		}
+
 		if(this.result !== undefined) {
 			if(!this.result[0]) {
 				callback(this.result[1]);
@@ -107,6 +119,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 		const newDeferred = new Deferred<TResult1 | TResult2>();
 
 		if(onfulfilled !== undefined && onfulfilled !== null) {
+			if(!(onfulfilled instanceof Function)) {
+				throw new TypeError("'onfulfilled' argument must be a function");
+			}
+
 			this.onResolve((value) => {
 				try {
 					const result = onfulfilled(value);
@@ -126,6 +142,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 		}
 
 		if(onrejected !== undefined && onrejected !== null) {
+			if(!(onrejected instanceof Function)) {
+				throw new TypeError("'onfulfilled' argument must be a function");
+			}
+
 			this.onReject((reason) => {
 				try {
 					const result = onrejected(reason);
@@ -156,6 +176,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 
 	[inspect.custom](_: number, options: InspectOptionsStylized): string {
 		function specialStyle(text: string): string {
+			if(typeof(options) !== "object" || !("stylize" in options) || !(options.stylize instanceof Function)) {
+				throw new TypeError("'options' argument must be an object with a 'stylize' function");
+			}
+
 			if(options.colors !== true) {
 				return text;
 			}

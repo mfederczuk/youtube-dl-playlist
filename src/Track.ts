@@ -65,6 +65,22 @@ export interface TrackValidationResult extends Joi.ValidationResult {
 }
 
 function downloadUrl(basename: string, url: string, retry: number, maxRetries: number): boolean {
+	if(typeof(basename) !== "string") {
+		throw new TypeError("'basename' argument must be a string");
+	}
+
+	if(typeof(url) !== "string") {
+		throw new TypeError("'url' argument must be a string");
+	}
+
+	if(typeof(retry) !== "number") {
+		throw new TypeError("'retry' argument must be a number");
+	}
+
+	if(typeof(maxRetries) !== "number") {
+		throw new TypeError("'maxRetries' argument must be a number");
+	}
+
 	const ytdl = spawnSync(
 		"youtube-dl",
 		[
@@ -98,8 +114,36 @@ export default class Track {
 		readonly nr?: number,
 		readonly year?: number
 	) {
+		if(!(urls instanceof Array)) {
+			throw new TypeError("'urls' argument must be an array");
+		}
 		if(urls.length === 0) {
-			throw new Error("At least one URL required");
+			throw new Error("'urls' argument must not be empty");
+		}
+		urls.forEach((url) => {
+			if(typeof(url) !== "string") {
+				throw new TypeError("All items of 'urls' argument must be strings");
+			}
+		});
+
+		if(typeof(title) !== "string") {
+			throw new TypeError("'title' argument must be a string");
+		}
+
+		if(typeof(artist) !== "string") {
+			throw new TypeError("'artist' argument must be a string");
+		}
+
+		if(album !== undefined && typeof(album) !== "string") {
+			throw new TypeError("'album' argument must be a string");
+		}
+
+		if(nr !== undefined && typeof(nr) !== "number") {
+			throw new TypeError("'number' argument must be a number");
+		}
+
+		if(year !== undefined && typeof(year) !== "number") {
+			throw new TypeError("'year' argument must be a number");
 		}
 	}
 
@@ -130,6 +174,10 @@ export default class Track {
 	}
 
 	download(basename: string): Promise<void> {
+		if(typeof(basename) !== "string") {
+			throw new TypeError("Argument must be a string");
+		}
+
 		return new Promise((resolve, reject) => {
 			if(this.downloadOnly(basename)) {
 				this.writeId3v2Tags(`${basename}.mp3`).then(resolve, reject);
@@ -140,6 +188,10 @@ export default class Track {
 	}
 
 	private downloadOnly(basename: string): boolean {
+		if(typeof(basename) !== "string") {
+			throw new TypeError("Argument must be a string");
+		}
+
 		if(this.urls.length === 1) {
 			return downloadUrl(basename, this.url, 0, 5);
 		}
@@ -154,6 +206,10 @@ export default class Track {
 	}
 
 	private async writeId3v2Tags(filename: string) {
+		if(typeof(filename) !== "string") {
+			throw new TypeError("'usedUrl' argument must be a string");
+		}
+
 		const res = nodeId3.write(
 			{
 				title: this.title,
@@ -171,6 +227,10 @@ export default class Track {
 	}
 
 	compare(other: Track): number {
+		if(!(other instanceof Track)) {
+			throw new TypeError("Argument must be a Track");
+		}
+
 		if(this.artist !== other.artist) {
 			return this.artist.localeCompare(other.artist);
 		}
@@ -249,9 +309,10 @@ export default class Track {
 		};
 	}
 
-	equals(other: Track): boolean {
+	equals(other: unknown): boolean {
 		return (this === other) ||
-			(this.urls.length === other.urls.length &&
+			(other instanceof Track &&
+				this.urls.length === other.urls.length &&
 				this.urls.every((ourUrl, i) => (ourUrl === other.urls[i])) &&
 				this.title === other.title &&
 				this.artist === other.title &&

@@ -31,6 +31,10 @@ interface Stringable {
 type BasenameCreator = (track: Track) => (string | undefined);
 
 function turnToBasename(string: string): string {
+	if(typeof(string) !== "string") {
+		throw new TypeError("Argument must be a string");
+	}
+
 	return string
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")
@@ -121,6 +125,10 @@ export default class Playlist extends Map<string, Track> {
 		super();
 
 		if(tracks !== undefined) {
+			if(tracks === null || !(Symbol.iterator in tracks) || !(tracks[Symbol.iterator] instanceof Function)) {
+				throw new TypeError("Argument must be iterable");
+			}
+
 			this.add(...tracks);
 		}
 	}
@@ -130,11 +138,25 @@ export default class Playlist extends Map<string, Track> {
 	}
 
 	add(...newTracks: Track[]): void {
+		newTracks.forEach((newTrack) => {
+			if(!(newTrack instanceof Track)) {
+				throw new TypeError("Arguments must be Tracks");
+			}
+		});
+
 		newTracks.forEach((newTrack) => (this.addNewTrack(newTrack)));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 	private addNewTrack(newTrack: Track, filenameCreatorIndex: number = 0) {
+		if(!(newTrack instanceof Track)) {
+			throw new TypeError("'newTrack' argument must be a Track");
+		}
+
+		if(typeof(filenameCreatorIndex) !== "number") {
+			throw new TypeError("'filenameCreatorIndex' argument must be a number");
+		}
+
 		for(const existingTrack of this.values()) {
 			if(newTrack.equals(existingTrack)) {
 				return;
@@ -179,6 +201,10 @@ export default class Playlist extends Map<string, Track> {
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 	download(highEffortMode: boolean = false): Map<string, PromiseLike<void>> {
+		if(typeof(highEffortMode) !== "boolean") {
+			throw new TypeError("Argument must be a boolean");
+		}
+
 		const logicalCoreCount = os.cpus().length;
 
 		if(!highEffortMode) {
@@ -209,6 +235,10 @@ export default class Playlist extends Map<string, Track> {
 	}
 
 	private downloadInChildProcesses(amountOfChildProcesses: number): Map<string, PromiseLike<void>> {
+		if(typeof(amountOfChildProcesses) !== "number") {
+			throw new TypeError("Argument must be a number");
+		}
+
 		const trackAmountsForChildProcesses: readonly number[] = (() => {
 			const array = new Array<number>(amountOfChildProcesses).fill(Math.min(this.size / amountOfChildProcesses));
 
