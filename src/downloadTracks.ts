@@ -55,7 +55,9 @@ process.on("message", (entries: [basename: string, track: TrackJSON][]) => {
 			.catch((reason) => (console.error("Error:", reason)))
 			.finally(() => {
 				++finishedCount;
-				if(finishedCount >= downloads.size) process.disconnect();
+				if(finishedCount >= downloads.size) {
+					process.disconnect();
+				}
 			});
 	});
 });

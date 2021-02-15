@@ -51,7 +51,9 @@ const basenameCreators: BasenameCreator[] = (
 ).map((func) => (track) => {
 	const parts = func(track);
 
-	if(parts.some((part) => (part === undefined))) return undefined;
+	if(parts.some((part) => (part === undefined))) {
+		return undefined;
+	}
 
 	return (parts as Stringable[])
 		.map((part) => (part.toString()))
@@ -77,7 +79,9 @@ function downloadTracks(
 	inChildProcess: boolean
 ): Map<string, PromiseLike<void>> {
 
-	if(entries.length === 0) return new Map();
+	if(entries.length === 0) {
+		return new Map();
+	}
 
 	if(!inChildProcess) {
 		return entries.reduce(
@@ -116,7 +120,9 @@ export default class Playlist extends Map<string, Track> {
 	constructor(tracks?: Iterable<Track>) {
 		super();
 
-		if(tracks !== undefined) this.add(...tracks);
+		if(tracks !== undefined) {
+			this.add(...tracks);
+		}
 	}
 
 	static validateJSON(value: unknown): PlaylistValidationResult {
@@ -189,7 +195,9 @@ export default class Playlist extends Map<string, Track> {
 			const limits = [20, 50, 100, 200, 500, 750, 1000, 2000];
 
 			for(let i = 0; i < limits.length; ++i) {
-				if(this.size <= limits[i]) return ((i + 1) * 2);
+				if(this.size <= limits[i]) {
+					return ((i + 1) * 2);
+				}
 			}
 
 			return (limits.length * 2);

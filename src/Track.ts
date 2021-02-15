@@ -98,7 +98,9 @@ export default class Track {
 		readonly nr?: number,
 		readonly year?: number
 	) {
-		if(urls.length === 0) throw new Error("At least one URL required");
+		if(urls.length === 0) {
+			throw new Error("At least one URL required");
+		}
 	}
 
 	static validateJSON(value: unknown): TrackValidationResult {
@@ -107,8 +109,15 @@ export default class Track {
 
 	static fromJSON(value: unknown): Track {
 		const res = Track.validateJSON(value);
-		if(res.error !== undefined) throw res.error;
-		if(res.value === undefined) throw new Error("Could not validate track JSON");
+
+		if(res.error !== undefined) {
+			throw res.error;
+		}
+
+		if(res.value === undefined) {
+			throw new Error("Could not validate track JSON");
+		}
+
 		return res.value;
 	}
 
@@ -131,7 +140,9 @@ export default class Track {
 	}
 
 	private downloadOnly(basename: string): boolean {
-		if(this.urls.length === 1) return downloadUrl(basename, this.url, 0, 5);
+		if(this.urls.length === 1) {
+			return downloadUrl(basename, this.url, 0, 5);
+		}
 
 		for(const url of this.urls) {
 			if(downloadUrl(basename, url, 0, 3)) {
@@ -154,39 +165,71 @@ export default class Track {
 			filename
 		);
 
-		if(res instanceof Error) throw res;
+		if(res instanceof Error) {
+			throw res;
+		}
 	}
 
 	compare(other: Track): number {
-		if(this.artist !== other.artist) return this.artist.localeCompare(other.artist);
+		if(this.artist !== other.artist) {
+			return this.artist.localeCompare(other.artist);
+		}
 
 		if(this.album !== other.album) {
-			if(this.album === undefined) return 1;
-			if(other.album === undefined) return -1;
+			if(this.album === undefined) {
+				return 1;
+			}
+
+			if(other.album === undefined) {
+				return -1;
+			}
+
 			return this.album.localeCompare(other.album);
 		}
 
 		if(this.album === undefined) {
-			if(this.title !== other.title) return this.title.localeCompare(other.title);
+			if(this.title !== other.title) {
+				return this.title.localeCompare(other.title);
+			}
 
 			if(this.nr !== other.nr) {
-				if(this.nr === undefined) return 1;
-				if(other.nr === undefined) return -1;
+				if(this.nr === undefined) {
+					return 1;
+				}
+
+				if(other.nr === undefined) {
+					return -1;
+				}
+
 				return (this.nr - other.nr);
 			}
 		} else {
 			if(this.nr !== other.nr) {
-				if(this.nr === undefined) return 1;
-				if(other.nr === undefined) return -1;
+				if(this.nr === undefined) {
+					return 1;
+				}
+
+				if(other.nr === undefined) {
+					return -1;
+				}
+
 				return (this.nr - other.nr);
 			}
 
-			if(this.title !== other.title) return this.title.localeCompare(other.title);
+			if(this.title !== other.title) {
+				return this.title.localeCompare(other.title);
+			}
 		}
 
 		if(this.year !== other.year) {
-			if(this.year === undefined) return 1;
-			if(other.year === undefined) return -1;
+			if(this.year === undefined) {
+				return 1;
+			}
+
+			if(other.year === undefined) {
+				return -1;
+			}
+
 			return (this.year - other.year);
 		}
 

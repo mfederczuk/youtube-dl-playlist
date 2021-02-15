@@ -49,7 +49,9 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 	}
 
 	resolve(value: T): void {
-		if(this.result !== undefined) return;
+		if(this.result !== undefined) {
+			return;
+		}
 
 		this.result = [true, value];
 
@@ -61,7 +63,9 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 	}
 
 	reject(reason: E): void {
-		if(this.result !== undefined) return;
+		if(this.result !== undefined) {
+			return;
+		}
 
 		this.result = [false, reason];
 
@@ -74,7 +78,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 
 	onResolve(callback: (value: T) => void): void {
 		if(this.result !== undefined) {
-			if(this.result[0]) callback(this.result[1]);
+			if(this.result[0]) {
+				callback(this.result[1]);
+			}
+
 			return;
 		}
 
@@ -83,7 +90,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 
 	onReject(callback: (reason: E) => void): void {
 		if(this.result !== undefined) {
-			if(!this.result[0]) callback(this.result[1]);
+			if(!this.result[0]) {
+				callback(this.result[1]);
+			}
+
 			return;
 		}
 
@@ -146,7 +156,10 @@ export default class Deferred<T = unknown, E = (unknown | undefined)> implements
 
 	[inspect.custom](_: number, options: InspectOptionsStylized): string {
 		function specialStyle(text: string): string {
-			if(options.colors !== true) return text;
+			if(options.colors !== true) {
+				return text;
+			}
+
 			return options.stylize(text, "special");
 		}
 
