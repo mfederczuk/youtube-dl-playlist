@@ -85,7 +85,7 @@ export const trackSchema = Joi.object({
 		.optional(),
 	other: Joi.any().optional()
 }).required().custom((value: TrackJSON) => new Track(
-	[value.url, ...(value.fallback_urls ?? [])],
+	[value.url, ...(value.fallback_urls ?? [])].map((url) => new URL(url)),
 	value.title,
 	value.artist,
 	value.featured_artists,
@@ -100,13 +100,13 @@ export interface TrackValidationResult extends Joi.ValidationResult {
 	value: (Track | undefined);
 }
 
-function downloadUrl(basename: string, url: string, retry: number, maxRetries: number): boolean {
+function downloadUrl(basename: string, url: URL, retry: number, maxRetries: number): boolean {
 	if(typeof(basename) !== "string") {
 		throw new TypeError("'basename' argument must be a string");
 	}
 
-	if(typeof(url) !== "string") {
-		throw new TypeError("'url' argument must be a string");
+	if(!(url instanceof URL)) {
+		throw new TypeError("'url' argument must be a URL");
 	}
 
 	if(typeof(retry) !== "number") {
@@ -126,7 +126,7 @@ function downloadUrl(basename: string, url: string, retry: number, maxRetries: n
 			"--audio-quality=0",
 			"--prefer-ffmpeg",
 			"-o", `${basename.replace(/%/g, "%%")}.%(ext)s`,
-			url
+			url.toString()
 		]
 	);
 
@@ -145,7 +145,7 @@ export default class Track {
 	readonly comments?: string;
 
 	constructor(
-		readonly urls: readonly string[],
+		readonly urls: readonly URL[],
 		readonly title: string,
 		readonly artist: string,
 		readonly featuredArtists?: readonly string[],
@@ -162,8 +162,8 @@ export default class Track {
 			throw new Error("'urls' argument must not be empty");
 		}
 		urls.forEach((url) => {
-			if(typeof(url) !== "string") {
-				throw new TypeError("All items of 'urls' argument must be strings");
+			if(!(url instanceof URL)) {
+				throw new TypeError("All items of 'urls' argument must be URLs");
 			}
 		});
 
@@ -236,11 +236,11 @@ export default class Track {
 		return res.value;
 	}
 
-	get url(): string {
+	get url(): URL {
 		return this.urls[0];
 	}
 
-	get fallbackUrls(): string[] {
+	get fallbackUrls(): URL[] {
 		return this.urls.slice(1);
 	}
 
@@ -251,7 +251,7 @@ export default class Track {
 
 		return new Promise((resolve, reject) => {
 			const successfulUrl = this.downloadOnly(basename);
-			if(typeof(successfulUrl) === "string") {
+			if(successfulUrl instanceof URL) {
 				this.writeId3v2Tags(successfulUrl, `${basename}.mp3`).then(resolve, reject);
 			} else {
 				reject();
@@ -259,7 +259,7 @@ export default class Track {
 		});
 	}
 
-	private downloadOnly(basename: string): (string | undefined) {
+	private downloadOnly(basename: string): (URL | undefined) {
 		if(typeof(basename) !== "string") {
 			throw new TypeError("Argument must be a string");
 		}
@@ -278,9 +278,9 @@ export default class Track {
 		return undefined;
 	}
 
-	private async writeId3v2Tags(usedUrl: string, filename: string) {
-		if(typeof(usedUrl) !== "string") {
-			throw new TypeError("'usedUrl' argument must be a string");
+	private async writeId3v2Tags(usedUrl: URL, filename: string) {
+		if(!(usedUrl instanceof URL)) {
+			throw new TypeError("'usedUrl' argument must be a URL");
 		}
 
 		if(typeof(filename) !== "string") {
@@ -301,7 +301,7 @@ export default class Track {
 				},
 				userDefinedUrl: [{
 					description: "Source URL",
-					url: usedUrl
+					url: usedUrl.toString()
 				}]
 			},
 			filename
@@ -397,9 +397,9 @@ export default class Track {
 			...(this.nr !== undefined ? { nr: this.nr } : {}),
 			...(this.year !== undefined ? { year: this.year } : {}),
 			...(comments !== undefined ? { comments } : {}),
-			url: this.url,
+			url: this.url.toString(),
 			// eslint-disable-next-line camelcase
-			...(this.fallbackUrls.length > 0 ? { fallback_urls: this.fallbackUrls } : {}),
+			...(this.fallbackUrls.length > 0 ? { fallback_urls: this.fallbackUrls.map((url) => url.toString()) } : {}),
 			...(this.other !== undefined ? { other: this.other } : {})
 		};
 	}
