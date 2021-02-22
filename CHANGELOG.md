@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/mfederczuk/youtube-dl-playlist/compare/v1.0.0-indev05...master
 
+### Added ###
+
+* `"file"`, `"fallback_files"` track fields.  
+  These URLs will be downloaded with **cURL** instead of **youtube-dl**
+
 ## [1.0.0-indev05] - 2021-02-15 ##
 
 [1.0.0-indev05]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev05

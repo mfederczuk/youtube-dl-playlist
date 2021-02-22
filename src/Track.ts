@@ -17,8 +17,11 @@
  */
 
 import { spawnSync } from "child_process";
+import * as fs from "fs";
 import Joi from "joi";
 import * as nodeId3 from "node-id3";
+import * as path from "path";
+import "./utils";
 
 export interface TrackJSON {
 	title: string;
@@ -29,10 +32,56 @@ export interface TrackJSON {
 	nr?: number;
 	year?: number;
 	comments?: (string | string[]);
-	url: string;
+	url?: string;
 	// eslint-disable-next-line camelcase
 	fallback_urls?: string[];
+	file?: string;
+	// eslint-disable-next-line camelcase
+	fallback_files?: string[];
 	other?: unknown;
+}
+
+function trackJsonToTrackObject(json: TrackJSON): Track {
+	const urls: URL[] = [];
+
+	function addUrl(url: string, ytdlplScheme: ("curl" | "youtube-dl")) {
+		urls.push(new URL(`ytdlpl-${ytdlplScheme}-${url}`));
+	}
+
+	if(typeof(json.file) === "string") {
+		addUrl(json.file, "curl");
+	}
+	if(json.fallback_files instanceof Array) {
+		json.fallback_files.forEach((fallbackFile) => {
+			addUrl(fallbackFile, "curl");
+		});
+	}
+
+	if(typeof(json.url) === "string") {
+		addUrl(json.url, "youtube-dl");
+	}
+	if(json.fallback_urls instanceof Array) {
+		json.fallback_urls.forEach((fallbackUrl) => {
+			addUrl(fallbackUrl, "youtube-dl");
+		});
+	}
+
+	let comments = json.comments;
+	if(comments instanceof Array) {
+		comments = comments.join("\n");
+	}
+
+	return new Track(
+		urls,
+		json.title,
+		json.artist,
+		json.featured_artists,
+		json.album,
+		json.nr,
+		json.year,
+		comments,
+		json.other
+	);
 }
 
 export const trackSchema = Joi.object({
@@ -77,27 +126,35 @@ export const trackSchema = Joi.object({
 	).optional(),
 	url: Joi.string()
 		.uri().warn()
-		.required(),
+		.optional(),
 	// eslint-disable-next-line camelcase
 	fallback_urls: Joi.array()
 		.items(Joi.link("...url"))
 		.min(1).warn()
 		.optional(),
+	file: Joi.string()
+		.uri().warn()
+		.optional(),
+	// eslint-disable-next-line camelcase
+	fallback_files: Joi.array()
+		.items(Joi.link("...file"))
+		.min(1).warn()
+		.optional(),
 	other: Joi.any().optional()
-}).required().custom((value: TrackJSON) => new Track(
-	[value.url, ...(value.fallback_urls ?? [])].map((url) => new URL(url)),
-	value.title,
-	value.artist,
-	value.featured_artists,
-	value.album,
-	value.nr,
-	value.year,
-	value.comments,
-	value.other
-));
+}).required().custom(trackJsonToTrackObject);
 
 export interface TrackValidationResult extends Joi.ValidationResult {
 	value: (Track | undefined);
+}
+
+function retrieveProgramFromUrl(url: URL): [program: ("youtube-dl" | "curl"), url: string] {
+	for(const program of ["youtube-dl", "curl"] as ["youtube-dl", "curl"]) {
+		if(url.protocol.startsWith(`ytdlpl-${program}-`)) {
+			return [program, url.toString().removePrefix(`ytdlpl-${program}-`)];
+		}
+	}
+
+	throw new Error("Invalid scheme");
 }
 
 function downloadUrl(basename: string, url: URL, retry: number, maxRetries: number): boolean {
@@ -117,21 +174,37 @@ function downloadUrl(basename: string, url: URL, retry: number, maxRetries: numb
 		throw new TypeError("'maxRetries' argument must be a number");
 	}
 
-	const ytdl = spawnSync(
-		"youtube-dl",
-		[
-			"--format=bestaudio",
-			"-x",
-			"--audio-format=mp3",
-			"--audio-quality=0",
-			"--prefer-ffmpeg",
-			"-o", `${basename.replace(/%/g, "%%")}.%(ext)s`,
-			url.toString()
-		]
-	);
+	const [program, correctUrl] = retrieveProgramFromUrl(url);
 
-	if(ytdl.status === 0) {
-		return true;
+	if(program === "youtube-dl") {
+		const ytdl = spawnSync(
+			"youtube-dl",
+			[
+				"--format=bestaudio",
+				"-x",
+				"--audio-format=mp3",
+				"--audio-quality=0",
+				"--prefer-ffmpeg",
+				"-o", `${basename.replace(/%/g, "%%")}.%(ext)s`,
+				correctUrl
+			]
+		);
+
+		if(ytdl.status === 0) {
+			return true;
+		}
+	} else if(program === "curl") {
+		const curl = spawnSync(
+			"curl",
+			[
+				"-o", path.basename(url.pathname),
+				correctUrl
+			]
+		);
+
+		if(curl.status === 0) {
+			return true;
+		}
 	}
 
 	if(retry >= maxRetries) {
@@ -141,9 +214,22 @@ function downloadUrl(basename: string, url: URL, retry: number, maxRetries: numb
 	return downloadUrl(basename, url, retry + 1, maxRetries);
 }
 
-export default class Track {
-	readonly comments?: string;
+function convertToMp3(inputFilename: string, outputBasename: string): boolean {
+	const ffmpeg = spawnSync(
+		"ffmpeg",
+		[
+			"-i", inputFilename,
+			"-y",
+			`${outputBasename}.mp3`
+		]
+	);
 
+	fs.rmSync(inputFilename);
+
+	return (ffmpeg.status === 0);
+}
+
+export default class Track {
 	constructor(
 		readonly urls: readonly URL[],
 		readonly title: string,
@@ -152,7 +238,7 @@ export default class Track {
 		readonly album?: string,
 		readonly nr?: number,
 		readonly year?: number,
-		comments?: (string | readonly string[]),
+		readonly comments?: string,
 		readonly other?: unknown
 	) {
 		if(!(urls instanceof Array)) {
@@ -164,6 +250,12 @@ export default class Track {
 		urls.forEach((url) => {
 			if(!(url instanceof URL)) {
 				throw new TypeError("All items of 'urls' argument must be URLs");
+			}
+		});
+		urls.forEach((url) => {
+			if(!url.protocol.startsWith("ytdlpl-youtube-dl-") &&
+				!url.protocol.startsWith("ytdlpl-curl-")) {
+				throw new Error("Invalid URI scheme");
 			}
 		});
 
@@ -200,16 +292,6 @@ export default class Track {
 		}
 
 		if(comments !== undefined) {
-			if(comments instanceof Array) {
-				comments.forEach((line) => {
-					if(typeof(line) !== "string") {
-						throw new TypeError("All items of 'comments' argument must be strings");
-					}
-				});
-
-				comments = comments.join("\n");
-			}
-
 			if(typeof(comments) !== "string") {
 				throw new TypeError("'comments' argument must be a string");
 			}
@@ -251,11 +333,20 @@ export default class Track {
 
 		return new Promise((resolve, reject) => {
 			const successfulUrl = this.downloadOnly(basename);
-			if(successfulUrl instanceof URL) {
-				this.writeId3v2Tags(successfulUrl, `${basename}.mp3`).then(resolve, reject);
-			} else {
+
+			if(!(successfulUrl instanceof URL)) {
 				reject();
+				return;
 			}
+
+			if(retrieveProgramFromUrl(successfulUrl)[0] === "curl" &&
+				!convertToMp3(path.basename(successfulUrl.pathname), basename)) {
+
+				reject();
+				return;
+			}
+
+			this.writeId3v2Tags(successfulUrl, `${basename}.mp3`).then(resolve, reject);
 		});
 	}
 
@@ -388,6 +479,20 @@ export default class Track {
 			comments = comments[0];
 		}
 
+		const urls: string[] = [], files: string[] = [];
+		this.urls.forEach((url) => {
+			const [program, correctUrl] = retrieveProgramFromUrl(url);
+
+			if(program === "youtube-dl") {
+				urls.push(correctUrl);
+			} else if(program === "curl") {
+				files.push(correctUrl);
+			}
+		});
+
+		const url = urls.splice(0, 1)[0] as (string | undefined);
+		const file = files.splice(0, 1)[0] as (string | undefined);
+
 		return {
 			title: this.title,
 			artist: this.artist,
@@ -397,9 +502,12 @@ export default class Track {
 			...(this.nr !== undefined ? { nr: this.nr } : {}),
 			...(this.year !== undefined ? { year: this.year } : {}),
 			...(comments !== undefined ? { comments } : {}),
-			url: this.url.toString(),
+			...(url !== undefined ? { url } : {}),
 			// eslint-disable-next-line camelcase
-			...(this.fallbackUrls.length > 0 ? { fallback_urls: this.fallbackUrls.map((url) => url.toString()) } : {}),
+			...(urls.length > 0 ? { fallback_urls: urls } : {}),
+			...(file !== undefined ? { file } : {}),
+			// eslint-disable-next-line camelcase
+			...(files.length > 0 ? { fallback_files: files } : {}),
 			...(this.other !== undefined ? { other: this.other } : {})
 		};
 	}

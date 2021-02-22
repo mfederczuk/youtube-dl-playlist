@@ -159,16 +159,40 @@ if(cliInput.rewrite !== false) {
 }
 
 if(cliInput.download !== false) {
-	const hasYoutubeDl = process.env["PATH"]
-		?.split(":")
-		?.filter(existsSync)
-		?.filter((pathDir) => (statSync(pathDir).isDirectory()))
-		?.some((pathDir) => (readdirSync(pathDir).some((file) => (file === "youtube-dl"))));
+	let hasYoutubeDl = false,
+		hasCurl = false,
+		hasFfmpeg = false;
 
-	if(hasYoutubeDl !== true) {
-		console.error(`${scriptName}: youtube-dl: program missing`);
-		process.exit(27);
+	const pathDirs = process.env["PATH"]?.split(":");
+
+	if(pathDirs instanceof Array) {
+		outer: for(const pathDir of pathDirs) {
+			if(!existsSync(pathDir) || !statSync(pathDir).isDirectory()) {
+				continue;
+			}
+
+			for(const entry of readdirSync(pathDir)) {
+				if(entry === "youtube-dl") hasYoutubeDl = true;
+				if(entry === "curl") hasCurl = true;
+				if(entry === "ffmpeg") hasFfmpeg = true;
+
+				if(hasYoutubeDl && hasCurl && hasFfmpeg) {
+					break outer;
+				}
+			}
+		}
 	}
+
+	[
+		[hasYoutubeDl, "youtube-dl"],
+		[hasCurl, "curl"],
+		[hasFfmpeg, "ffmpeg"]
+	].forEach(([hasProgram, program]) => {
+		if(!hasProgram) {
+			console.error(`${scriptName}: ${program}: program missing`);
+			process.exit(27);
+		}
+	});
 
 	const downloads = playlist.download(cliInput.download.highEffort);
 

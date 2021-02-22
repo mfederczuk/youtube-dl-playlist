@@ -4,13 +4,15 @@
 
 ## About ##
 
-**youtube-dl-playlist** is a **[Node.js]** program that uses **[youtube-dl]** to download an entire playlist loaded in
-from a **JSON** file.  
-The program automatically will download all tracks with the best audio available, then convert them into `mp3` files and
-add **ID3v2** frames to the file.
+**youtube-dl-playlist** is a **[Node.js]** program that uses **[youtube-dl]** or **[cURL]** to download an entire
+playlist loaded in from a **JSON** file.  
+The program automatically will download all tracks with the best audio available, then convert them into `mp3` files
+using **[FFmpeg]** and add **ID3v2** frames to the file.
 
-[youtube-dl]: https://github.com/ytdl-org/youtube-dl
 [Node.js]: https://nodejs.org
+[youtube-dl]: https://github.com/ytdl-org/youtube-dl
+[cURL]: https://curl.se
+[FFmpeg]: https://ffmpeg.org
 
 ## Download / Installation ##
 
@@ -34,11 +36,16 @@ The given file must be a **JSON** array where each item must match the following
 	"nr"?: number,
 	"year"?: number,
 	"comments"?: string | string[],
-	"url": string,
+	"url"?: string,
 	"fallback_urls"?: string[],
+	"file"?: string,
+	"fallback_files"?: string[],
 	"other"?: any
 }
 ```
+
+URLs in `"url"` and `"fallback_urls"` will be download using **youtube-dl** and all URLs in `"file"` and
+`"fallback_files"` will be downloaded using **cURL**.
 
 The following options can be specified:
 
@@ -58,6 +65,9 @@ The following options can be specified:
 
 It's not allowed to give both the `--compact` and the `--pretty` options at once.  
 The `--download` and one of the overwrite options (`--compact` and `--pretty`) are both allowed to be given at once.
+
+**youtube-dl**, **cURL** and **FFmpeg** needs be installed on the system and their binaries must be available on your
+`PATH`.
 
 ## License ##
 
