@@ -1,5 +1,9 @@
 # youtube-dl-playlist #
 
+[![Changelog](https://img.shields.io/badge/-Changelog-blue)](CHANGELOG.md "Changelog")
+
+## About ##
+
 **youtube-dl-playlist** is a **[Node.js]** program that uses **[youtube-dl]** to download an entire playlist loaded in
 from a **JSON** file.  
 The program automatically will download all tracks with the best audio available, then convert them into `mp3` files and
