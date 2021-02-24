@@ -18,7 +18,7 @@
 
 import { inspect, InspectOptionsStylized } from "util";
 
-export default class Deferred<T = unknown, E = (unknown | undefined)> implements PromiseLike<T> {
+export class Deferred<T = unknown, E = (unknown | undefined)> implements PromiseLike<T> {
 	private result?: (readonly [true, T] | readonly [false, E]);
 	private readonly onResolveCallbacks: ((value: T) => void)[] = [];
 	private readonly onRejectCallbacks: ((reason: E) => void)[] = [];

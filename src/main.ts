@@ -19,7 +19,7 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import * as path from "path";
 import { DeepMutable } from "./mutable";
-import Playlist from "./Playlist";
+import { Playlist } from "./playlist";
 
 const scriptName = path.basename(process.argv[1]);
 const usage = `usage: ${scriptName} [--download [--high-effort]] [--sort] [--compact|--pretty=(tab|<number_of_spaces>)] <playlist_file>`;

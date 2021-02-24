@@ -229,7 +229,7 @@ function convertToMp3(inputFilename: string, outputBasename: string): boolean {
 	return (ffmpeg.status === 0);
 }
 
-export default class Track {
+export class Track {
 	constructor(
 		readonly urls: readonly URL[],
 		readonly title: string,

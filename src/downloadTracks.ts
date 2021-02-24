@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Track, { TrackJSON } from "./Track";
+import { Track, TrackJSON } from "./track";
 
 process.on("message", (entries: [basename: string, track: TrackJSON][]) => {
 	if(!(entries instanceof Array)) {

@@ -20,8 +20,8 @@ import { fork } from "child_process";
 import Joi from "joi";
 import * as os from "os";
 import { inspect } from "util";
-import Deferred from "./Deferred";
-import Track, { TrackJSON, trackSchema } from "./Track";
+import { Deferred } from "./deferred";
+import { Track, TrackJSON, trackSchema } from "./track";
 
 
 interface Stringable {
@@ -120,7 +120,7 @@ function downloadTracks(
 	return deferredMap;
 }
 
-export default class Playlist extends Map<string, Track> {
+export class Playlist extends Map<string, Track> {
 	constructor(tracks?: Iterable<Track>) {
 		super();
 
