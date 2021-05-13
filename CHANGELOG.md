@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-indev07] - 2021-05-13 ##
+
+[1.0.0-indev07]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev07
+
+### Fixed ###
+
+* Tracks with titles that do not contain any letters or digits would fail to download
+
 ## [1.0.0-indev06] - 2021-02-24 ##
 
 [1.0.0-indev06]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev06
