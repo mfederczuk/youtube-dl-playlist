@@ -43,21 +43,21 @@
 		"prepare": "npm run clean && npm run test-release && npm run tsc && npm run babel && npm run uglify"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.13.0",
-		"@babel/core": "^7.13.1",
-		"@babel/plugin-transform-runtime": "^7.13.7",
-		"@babel/preset-env": "^7.13.5",
-		"@types/node": "^14.14.31",
-		"@typescript-eslint/eslint-plugin": "^4.15.2",
-		"@typescript-eslint/parser": "^4.15.2",
-		"eslint": "^7.20.0",
+		"@babel/cli": "^7.13.16",
+		"@babel/core": "^7.14.2",
+		"@babel/plugin-transform-runtime": "^7.14.2",
+		"@babel/preset-env": "^7.14.2",
+		"@types/node": "^15.0.3",
+		"@typescript-eslint/eslint-plugin": "^4.23.0",
+		"@typescript-eslint/parser": "^4.23.0",
+		"eslint": "^7.26.0",
 		"ts-node": "^9.1.1",
-		"typescript": "^4.2.2",
-		"uglify-js": "^3.12.8"
+		"typescript": "^4.2.4",
+		"uglify-js": "^3.13.6"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.13.7",
+		"@babel/runtime": "^7.14.0",
 		"joi": "^17.4.0",
-		"node-id3": "^0.2.2"
+		"node-id3": "^0.2.3"
 	}
 }
