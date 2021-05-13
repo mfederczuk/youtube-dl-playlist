@@ -59,10 +59,15 @@ const basenameCreators: BasenameCreator[] = (
 		return undefined;
 	}
 
-	return (parts as Stringable[])
+	const basenameParts = (parts as Stringable[])
 		.map((part) => (part.toString()))
-		.map(turnToBasename)
-		.join("_");
+		.map(turnToBasename);
+
+	if(basenameParts.every((part) => (part.length === 0))) {
+		return undefined;
+	}
+
+	return basenameParts.join("_");
 });
 
 
