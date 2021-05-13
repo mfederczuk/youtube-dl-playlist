@@ -31,16 +31,16 @@
 		"url": "https://github.com/mfederczuk/youtube-dl-playlist.git"
 	},
 	"scripts": {
-		"lint": "npx eslint src",
-
-		"build": "npx tsc",
-		"clean": "rm -rf out types",
-		"rebuild": "npm run clean && npm run build",
-
+		"tsc": "npx tsc",
 		"babel": "find out -type f -name '*.js' -exec npx babel -o '{}' -- '{}' \\;",
 		"uglify": "find out -type f -name '*.js' -exec npx uglifyjs -o '{}' -- '{}' \\;",
 
-		"prepare": "npm run lint && npm run rebuild && npm run babel && npm run uglify"
+		"clean": "rm -rf out types",
+
+		"test-debug": "npx eslint src",
+		"test-release": "npx eslint --max-warnings 1 src",
+
+		"prepare": "npm run clean && npm run test-release && npm run tsc && npm run babel && npm run uglify"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.13.0",
