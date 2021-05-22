@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-indev08] - 2021-05-22 ##
+
+[1.0.0-indev08]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev08
+
+### Changed ###
+
+* Checks for **cURL** and **FFmpeg** in the `PATH` are now only done when they are actually needed to download tracks
+
+### Fixed ###
+
+* Tracks downloaded with **cURL** would "fail" when the file was already an mp3 file
+
 ## [1.0.0-indev07] - 2021-05-13 ##
 
 [1.0.0-indev07]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev07

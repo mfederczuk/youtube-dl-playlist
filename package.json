@@ -1,6 +1,6 @@
 {
 	"name": "@mfederczuk/youtube-dl-playlist",
-	"version": "1.0.0-indev07",
+	"version": "1.0.0-indev08",
 	"description": "Download an entire JSON playlist using youtube-dl",
 	"keywords": [
 		"youtube-dl"
@@ -43,17 +43,17 @@
 		"prepare": "npm run clean && npm run test-release && npm run tsc && npm run babel && npm run uglify"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.13.16",
-		"@babel/core": "^7.14.2",
-		"@babel/plugin-transform-runtime": "^7.14.2",
+		"@babel/cli": "^7.14.3",
+		"@babel/core": "^7.14.3",
+		"@babel/plugin-transform-runtime": "^7.14.3",
 		"@babel/preset-env": "^7.14.2",
-		"@types/node": "^15.0.3",
-		"@typescript-eslint/eslint-plugin": "^4.23.0",
-		"@typescript-eslint/parser": "^4.23.0",
-		"eslint": "^7.26.0",
+		"@types/node": "^15.6.0",
+		"@typescript-eslint/eslint-plugin": "^4.24.0",
+		"@typescript-eslint/parser": "^4.24.0",
+		"eslint": "^7.27.0",
 		"ts-node": "^9.1.1",
 		"typescript": "^4.2.4",
-		"uglify-js": "^3.13.6"
+		"uglify-js": "^3.13.7"
 	},
 	"dependencies": {
 		"@babel/runtime": "^7.14.0",
