@@ -215,6 +215,8 @@ function downloadUrl(basename: string, url: URL, retry: number, maxRetries: numb
 }
 
 function convertToMp3(inputFilename: string, outputBasename: string): boolean {
+	if(inputFilename.endsWith(".mp3")) return true;
+
 	const ffmpeg = spawnSync(
 		"ffmpeg",
 		[
