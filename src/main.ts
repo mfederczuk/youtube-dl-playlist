@@ -159,6 +159,10 @@ if(cliInput.rewrite !== false) {
 }
 
 if(cliInput.download !== false) {
+	const needsCurlAndFfmpeg = [...playlist.values()]
+		.flatMap((track) => track.urls)
+		.some((url) => url.protocol.startsWith("ytdlpl-curl-"));
+
 	let hasYoutubeDl = false,
 		hasCurl = false,
 		hasFfmpeg = false;
@@ -184,11 +188,11 @@ if(cliInput.download !== false) {
 	}
 
 	[
-		[hasYoutubeDl, "youtube-dl"],
-		[hasCurl, "curl"],
-		[hasFfmpeg, "ffmpeg"]
-	].forEach(([hasProgram, program]) => {
-		if(!hasProgram) {
+		[true, hasYoutubeDl, "youtube-dl"],
+		[needsCurlAndFfmpeg, hasCurl, "curl"],
+		[needsCurlAndFfmpeg, hasFfmpeg, "ffmpeg"]
+	].forEach(([needsProgram, hasProgram, program]) => {
+		if(needsProgram && !hasProgram) {
 			console.error(`${scriptName}: ${program}: program missing`);
 			process.exit(27);
 		}

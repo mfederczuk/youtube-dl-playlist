@@ -148,7 +148,7 @@ export interface TrackValidationResult extends Joi.ValidationResult {
 }
 
 function retrieveProgramFromUrl(url: URL): [program: ("youtube-dl" | "curl"), url: string] {
-	for(const program of ["youtube-dl", "curl"] as ["youtube-dl", "curl"]) {
+	for(const program of ["youtube-dl", "curl"] as const) {
 		if(url.protocol.startsWith(`ytdlpl-${program}-`)) {
 			return [program, url.toString().removePrefix(`ytdlpl-${program}-`)];
 		}
