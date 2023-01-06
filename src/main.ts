@@ -9,12 +9,13 @@ import { DeepMutable } from "./mutable";
 import { Playlist } from "./playlist";
 
 const scriptName = path.basename(process.argv[1]);
-const usage = `usage: ${scriptName} [--download [--high-effort]] [--sort] [--compact|--pretty=(tab|<number_of_spaces>)] <playlist_file>`;
+const usage = `usage: ${scriptName} [--download [--high-effort] [--only-how-errors]] [--sort] [--compact|--pretty=(tab|<number_of_spaces>)] <playlist_file>`;
 
 interface CliInput {
 	readonly filePath?: string;
 	readonly download: (false | {
 		readonly highEffort: boolean;
+		readonly onlyShowError: boolean;
 	});
 	readonly rewrite: (false | {
 		readonly format?: ("compact" | "tab" | number);
@@ -28,13 +29,19 @@ const cliInput: CliInput = process.argv.slice(2).reduce((cliInput, arg) => {
 			cliInput.processOptions = false;
 		} else if(arg === "--download") {
 			if(cliInput.download === false) {
-				cliInput.download = { highEffort: false };
+				cliInput.download = { highEffort: false, onlyShowError: false };
 			}
 		} else if(arg === "--high-effort") {
 			if(cliInput.download === false) {
-				cliInput.download = { highEffort: true };
+				cliInput.download = { highEffort: true, onlyShowError: false };
 			} else {
 				cliInput.download.highEffort = true;
+			}
+		} else if(arg === "--only-show-errors") {
+			if(cliInput.download === false) {
+				cliInput.download = { highEffort: false, onlyShowError: true };
+			} else {
+				cliInput.download.onlyShowError = true;
 			}
 		} else if(arg === "--compact") {
 			if(cliInput.rewrite === false) {
@@ -197,10 +204,14 @@ if(cliInput.download !== false) {
 		}
 	}
 
+	const onlyShowError: boolean = cliInput.download.onlyShowError;
+
 	downloads.forEach((promise, basename) => {
 		promise.then(
 			() => {
-				console.log(`${basename}: success`);
+				if(!onlyShowError) {
+					console.log(`${basename}: success`);
+				}
 				incrementFinishedDownload();
 			},
 			() => {
