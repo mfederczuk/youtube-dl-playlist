@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: CC0-1.0
 {
 	"compilerOptions": {
 		"declaration": true,
@@ -7,10 +8,9 @@
 		"module": "commonjs",
 		"noImplicitAny": true,
 		"outDir": "out",
-		"removeComments": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES2019"
+		"target": "ES2019",
 	},
-	"include": ["src"]
+	"include": ["src"],
 }
