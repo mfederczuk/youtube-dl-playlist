@@ -54,6 +54,9 @@ The following options can be specified:
 * `--high-effort`  
   Downloads the playlist faster, but uses more system resources.  
   Implies the `--download` option
+* `--only-show-errors`  
+  Only log tracks that failed to download.  
+  Implies the `--download` option
 * `--compact`  
   Overwrite the given file with compact JSON. Saves some space
 * `--pretty=(tab|<number_of_spaces>)`  
