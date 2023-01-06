@@ -1,6 +1,14 @@
+<!--
+  Copyright (c) 2023 Michael Federczuk
+  SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+
 # youtube-dl-playlist #
 
-[![Changelog](https://img.shields.io/badge/-Changelog-blue)](CHANGELOG.md "Changelog")
+[version_shield]: https://img.shields.io/badge/version-1.0.0--indev08-informational.svg
+[release_page]: https://github.com/mfederczuk/youtube-dl-playlist/releases/tag/v1.0.0-indev08 "Release v1.0.0-indev08"
+[![version: 1.0.0-indev08][version_shield]][release_page]
+[![Changelog](https://img.shields.io/badge/-Changelog-informational.svg)](CHANGELOG.md "Changelog")
 
 ## About ##
 
@@ -13,14 +21,6 @@ using **[FFmpeg]** and add **ID3v2** frames to the file.
 [youtube-dl]: https://github.com/ytdl-org/youtube-dl
 [cURL]: https://curl.se
 [FFmpeg]: https://ffmpeg.org
-
-## Download / Installation ##
-
-Install using **npm**:
-
-```sh
-npm i -g @mfederczuk/youtube-dl-playlist
-```
 
 ## Usage ##
 
@@ -69,6 +69,19 @@ The `--download` and one of the overwrite options (`--compact` and `--pretty`) a
 **youtube-dl**, **cURL** and **FFmpeg** needs be installed on the system and their binaries must be available on your
 `PATH`.
 
+## Installation ##
+
+Install using **npm**:
+
+```sh
+npm i -g @mfederczuk/youtube-dl-playlist
+```
+
+## Contributing ##
+
+Read through the [Contribution Guidelines](CONTRIBUTING.md) if you want to contribute to this project.
+
 ## License ##
 
-[GNU GPL-3.0](LICENSE)
+**youtube-dl-playlist** is licensed under the [**GNU General Public License v3.0 or later**](LICENSES/GPL-3.0.txt).  
+For more information about copying and licensing, see the [`COPYING.txt`](COPYING.txt) file.
