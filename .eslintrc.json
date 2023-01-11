@@ -28,6 +28,7 @@
 		"arrow-parens": "warn",
 		"camelcase": "warn",
 		"eqeqeq": "error",
+		"no-constant-condition": [ "warn", { "checkLoops": false } ],
 		"no-empty": "warn",
 		"no-empty-function": "warn",
 		"no-extra-semi": "warn",
