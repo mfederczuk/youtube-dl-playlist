@@ -68,6 +68,8 @@
 	},
 	"dependencies": {
 		"@babel/runtime": "^7.20.7",
+		"@mfederczuk/custom-exception": "^1.2.0",
+		"@mfederczuk/deeptools": "^2.0.0-indev01",
 		"joi": "^17.4.0",
 		"node-id3": "^0.2.5"
 	}
