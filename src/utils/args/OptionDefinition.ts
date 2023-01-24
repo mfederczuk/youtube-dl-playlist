@@ -11,7 +11,6 @@ import { compareEach } from "../arrays";
 import type { Inspectable } from "../Inspectable";
 import { quoteString } from "../strings";
 import type { DataType } from "./DataType";
-import { StringDataType } from "./DataType";
 import type { OptionIdentifier } from "./OptionIdentifier";
 
 export class OptionArgumentDefinition implements Inspectable {
@@ -19,7 +18,7 @@ export class OptionArgumentDefinition implements Inspectable {
 	readonly #name: string;
 	readonly #dataType: DataType;
 
-	constructor(name: string, dataType: DataType = StringDataType.rejectEmpty) {
+	constructor(name: string, dataType: DataType) {
 		if (name.length === 0) {
 			throw new InvalidArgumentException("Option-argument name must not be empty");
 		}
