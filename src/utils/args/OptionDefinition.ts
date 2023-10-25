@@ -11,15 +11,15 @@ import { compareEach } from "../arrays";
 import type { Inspectable } from "../Inspectable";
 import { quoteString } from "../strings";
 import type { DataType } from "./DataType";
-import { StringDataType } from "./DataType";
 import type { OptionIdentifier } from "./OptionIdentifier";
+import { OptionPriority } from "./OptionPriority";
 
 export class OptionArgumentDefinition implements Inspectable {
 
 	readonly #name: string;
 	readonly #dataType: DataType;
 
-	constructor(name: string, dataType: DataType = StringDataType.rejectEmpty) {
+	constructor(name: string, dataType: DataType) {
 		if (name.length === 0) {
 			throw new InvalidArgumentException("Option-argument name must not be empty");
 		}
@@ -62,17 +62,20 @@ export class OptionDefinition implements Inspectable {
 		readonly definition: OptionArgumentDefinition;
 		readonly required: boolean;
 	};
+	readonly #priority: OptionPriority;
 
 	constructor(
 		identifiers: readonly OptionIdentifier[],
 		argumentDefinition: OptionArgumentDefinition,
 		argumentRequired?: boolean,
+		priority?: OptionPriority,
 	);
-	constructor(identifiers: readonly OptionIdentifier[]);
+	constructor(identifiers: readonly OptionIdentifier[], priority?: OptionPriority);
 	constructor(
 		identifiers: readonly OptionIdentifier[],
-		argumentDefinition?: OptionArgumentDefinition,
+		argumentDefinitionOrPriority?: (OptionArgumentDefinition | OptionPriority),
 		argumentRequired: boolean = true,
+		priority: OptionPriority = OptionPriority.NORMAL,
 	) {
 		if (identifiers.length === 0) {
 			throw new InvalidArgumentException("At least one identifier must be given");
@@ -99,14 +102,20 @@ export class OptionDefinition implements Inspectable {
 
 		this.#identifiers = [...identifiers];
 
-		if (argumentDefinition instanceof OptionArgumentDefinition) {
+		if (argumentDefinitionOrPriority instanceof OptionArgumentDefinition) {
 			this.#argumentSpec = {
-				definition: argumentDefinition,
+				definition: argumentDefinitionOrPriority,
 				required: argumentRequired,
 			};
 		} else {
+			if (argumentDefinitionOrPriority !== undefined) {
+				priority = argumentDefinitionOrPriority;
+			}
+
 			this.#argumentSpec = undefined;
 		}
+
+		this.#priority = priority;
 
 		deepFreeze(this);
 	}
@@ -124,6 +133,16 @@ export class OptionDefinition implements Inspectable {
 
 	isArgumentRequired(): boolean {
 		return (this.#argumentSpec?.required ?? false);
+	}
+
+	getPriority(): OptionPriority {
+		return this.#priority;
+	}
+	isNormalPriority(): boolean {
+		return (this.#priority === OptionPriority.NORMAL);
+	}
+	isHighPriority(): boolean {
+		return (this.#priority === OptionPriority.HIGH);
 	}
 
 	toString(): string {
@@ -158,7 +177,8 @@ export class OptionDefinition implements Inspectable {
 		const obj = {
 			identifiers: this.#identifiers,
 			argumentDefinition: this.#argumentSpec?.definition,
-			...((typeof this.#argumentSpec === "object") ? { argumentRequired: this.#argumentSpec.required } : {})
+			...((typeof this.#argumentSpec === "object") ? { argumentRequired: this.#argumentSpec.required } : {}),
+			priority: this.#priority,
 		} as const;
 
 		return (this.constructor.name + " " + inspect(obj, options));

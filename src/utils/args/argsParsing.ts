@@ -9,6 +9,7 @@ import type { InspectOptionsStylized } from "util";
 import util from "util";
 import type { Inspectable } from "../Inspectable";
 import type { Char } from "../supportTypes";
+import { DataT } from "./DataType";
 import type { OperandDefinition } from "./OperandDefinition";
 import { OptionDefinition } from "./OptionDefinition";
 import { OptionIdentifier } from "./OptionIdentifier";
@@ -16,19 +17,19 @@ import { OptionStyle } from "./OptionStyle";
 import type { CommandsUsage, Usage } from "./Usage";
 import { RegularUsage } from "./Usage";
 
-export class SpecifiedOption implements Inspectable {
+export class SpecifiedOption<T extends (DataT | void)> implements Inspectable {
 
-	readonly #definition: OptionDefinition;
+	readonly #definition: OptionDefinition<T>;
 	readonly #usedIdentifier: OptionIdentifier;
 	readonly #argument?: string;
 
-	constructor(definition: OptionDefinition, usedIdentifier: OptionIdentifier, argument?: string) {
+	constructor(definition: OptionDefinition<T>, usedIdentifier: OptionIdentifier, argument?: string) {
 		this.#definition = definition;
 		this.#usedIdentifier = usedIdentifier;
 		this.#argument = argument;
 	}
 
-	getDefinition(): OptionDefinition {
+	getDefinition(): OptionDefinition<T> {
 		return this.#definition;
 	}
 
@@ -65,19 +66,19 @@ export class SpecifiedOption implements Inspectable {
 }
 deepFreeze(SpecifiedOption);
 
-export class SpecifiedOperand implements Inspectable {
+export class SpecifiedOperand<T extends DataT> implements Inspectable {
 
-	readonly #definition: OperandDefinition;
+	readonly #definition: OperandDefinition<T>;
 	readonly #value: string;
 
-	constructor(definition: OperandDefinition, value: string) {
+	constructor(definition: OperandDefinition<T>, value: string) {
 		this.#definition = definition;
 		this.#value = value;
 
 		deepFreeze(this);
 	}
 
-	getDefinition(): OperandDefinition {
+	getDefinition(): OperandDefinition<T> {
 		return this.#definition;
 	}
 
@@ -89,7 +90,7 @@ export class SpecifiedOperand implements Inspectable {
 		return this.#value;
 	}
 
-	[util.inspect.custom](_depth: number, options: util.InspectOptionsStylized, inspect: typeof util.inspect) {
+	[util.inspect.custom](_depth: number, options: InspectOptionsStylized, inspect: typeof util.inspect) {
 		let str: string = this.constructor.name;
 		str += " " + options.stylize(this.#value, "special");
 		str += " " + inspect({ definition: this.#definition }, options);
@@ -103,15 +104,15 @@ export class RegularArgsParsingResult implements Inspectable {
 
 	readonly #sourceUsage: RegularUsage;
 	readonly #invalidOptionIdentifiers: readonly OptionIdentifier[];
-	readonly #specifiedOptions: readonly SpecifiedOption[];
-	readonly #operands: readonly SpecifiedOperand[];
+	readonly #specifiedOptions: readonly SpecifiedOption<DataT | void>[];
+	readonly #operands: readonly SpecifiedOperand<DataT>[];
 	readonly #excessOperandCount: number;
 
 	constructor(
 		sourceUsage: RegularUsage,
 		invalidOptionIdentifiers: readonly OptionIdentifier[],
-		specifiedOptions: readonly SpecifiedOption[],
-		operands: readonly SpecifiedOperand[],
+		specifiedOptions: readonly SpecifiedOption<DataT | void>[],
+		operands: readonly SpecifiedOperand<DataT>[],
 		excessOperandCount: number,
 	) {
 		this.#sourceUsage = sourceUsage;
@@ -134,11 +135,11 @@ export class RegularArgsParsingResult implements Inspectable {
 		return this.#invalidOptionIdentifiers[0];
 	}
 
-	getSpecifiedOptions(): SpecifiedOption[] {
+	getSpecifiedOptions(): SpecifiedOption<DataT | void>[] {
 		return [...(this.#specifiedOptions)];
 	}
 
-	getOperands(): SpecifiedOperand[] {
+	getOperands(): SpecifiedOperand<DataT>[] {
 		return [...(this.#operands)];
 	}
 
@@ -169,7 +170,7 @@ export class CommandsArgsParsingResult implements Inspectable {
 
 	readonly #sourceUsage: CommandsUsage;
 	readonly #invalidPreCommandOptionIdentifiers: readonly OptionIdentifier[];
-	readonly #specifiedPreCommandOptions: readonly SpecifiedOption[];
+	readonly #specifiedPreCommandOptions: readonly SpecifiedOption<DataT | void>[];
 	readonly #specifiedCommand: ({
 		readonly name: string;
 		readonly args: ArgsParsingResult;
@@ -178,7 +179,7 @@ export class CommandsArgsParsingResult implements Inspectable {
 	constructor(
 		sourceUsage: CommandsUsage,
 		invalidPreCommandOptionIdentifiers: readonly OptionIdentifier[],
-		specifiedPreCommandOptions: readonly SpecifiedOption[],
+		specifiedPreCommandOptions: readonly SpecifiedOption<DataT | void>[],
 		specifiedCommand: ({
 			readonly name: string;
 			readonly args: ArgsParsingResult;
@@ -203,7 +204,7 @@ export class CommandsArgsParsingResult implements Inspectable {
 		return this.#invalidPreCommandOptionIdentifiers[0];
 	}
 
-	getSpecifiedPreCommandOptions(): SpecifiedOption[] {
+	getSpecifiedPreCommandOptions(): SpecifiedOption<DataT | void>[] {
 		return [...this.#specifiedPreCommandOptions];
 	}
 
@@ -300,10 +301,10 @@ function parseArgsByRegularUsage(
 	args: readonly string[],
 	processingOptions: boolean,
 ): RegularArgsParsingResult {
-	const optionDefinitions: readonly OptionDefinition[] = usage.getOptionDefinitions();
+	const optionDefinitions: readonly OptionDefinition<DataT | void>[] = usage.getOptionDefinitions();
 
 	const invalidOptionIdentifiers: OptionIdentifier[] = [];
-	const specifiedOptions: SpecifiedOption[] = [];
+	const specifiedOptions: SpecifiedOption<DataT | void>[] = [];
 	const operandValues: string[] = [];
 
 	for (let i: number = 0; i < args.length; ++i) {
@@ -321,8 +322,8 @@ function parseArgsByRegularUsage(
 				const optionIdentifierWord: string = arg.substring(2, ((equalsIndex >= 0) ? equalsIndex : arg.length));
 				const optionIdentifier = new OptionIdentifier(OptionStyle.LONG, optionIdentifierWord);
 
-				const foundOptionDefinition: (OptionDefinition | undefined) = optionDefinitions
-					.find((optionDefinition: OptionDefinition) => {
+				const foundOptionDefinition: (OptionDefinition<DataT | void> | undefined) = optionDefinitions
+					.find((optionDefinition: OptionDefinition<DataT | void>) => {
 						return optionDefinition.getIdentifiers()
 							.some((usageOptionIdentifier: OptionIdentifier) => {
 								return usageOptionIdentifier.equals(optionIdentifier);
@@ -356,8 +357,8 @@ function parseArgsByRegularUsage(
 				const optionIdentifierChar: Char = (arg[j] as Char);
 				const optionIdentifier = new OptionIdentifier(OptionStyle.SHORT, optionIdentifierChar);
 
-				const foundOptionDefinition: (OptionDefinition | undefined) = optionDefinitions
-					.find((optionDefinition: OptionDefinition) => {
+				const foundOptionDefinition: (OptionDefinition<DataT | void> | undefined) = optionDefinitions
+					.find((optionDefinition: OptionDefinition<DataT | void>) => {
 						return optionDefinition.getIdentifiers()
 							.some((usageOptionIdentifier: OptionIdentifier) => {
 								return usageOptionIdentifier.equals(optionIdentifier);
@@ -395,12 +396,14 @@ function parseArgsByRegularUsage(
 		operandValues.push(arg);
 	}
 
-	const operandDefinitions: OperandDefinition[] = usage.getOperandDefinitions();
+	const operandDefinitions: OperandDefinition<DataT>[] = usage.getOperandDefinitions();
 
-	const operands: SpecifiedOperand[] = [];
+	const operands: SpecifiedOperand<DataT>[] = [];
 
 	while ((operandValues.length > 0) && (operandDefinitions.length > 0)) {
-		const operandDefinition: OperandDefinition = (operandDefinitions.shift() as OperandDefinition);
+		const operandDefinition: OperandDefinition<DataT> =
+			(operandDefinitions.shift() as OperandDefinition<DataT>);
+
 		const value: string = (operandValues.shift() as string);
 
 		operands.push(new SpecifiedOperand(operandDefinition, value));
@@ -420,10 +423,10 @@ function parseArgsByCommandsUsage(
 	args: readonly string[],
 	processingOptions: boolean,
 ): CommandsArgsParsingResult {
-	const preCommandOptionDefinitions: readonly OptionDefinition[] = usage.getPreCommandOptionDefinitions();
+	const preCommandOptionDefinitions: readonly OptionDefinition<DataT | void>[] = usage.getPreCommandOptionDefinitions();
 
 	const invalidPreCommandOptionIdentifiers: OptionIdentifier[] = [];
-	const specifiedPreCommandOptions: SpecifiedOption[] = [];
+	const specifiedPreCommandOptions: SpecifiedOption<DataT | void>[] = [];
 
 	let commandNameIndex: number = -1;
 
@@ -446,8 +449,8 @@ function parseArgsByCommandsUsage(
 			const optionIdentifierWord: string = arg.substring(2, ((equalsIndex >= 0) ? equalsIndex : arg.length));
 			const optionIdentifier = new OptionIdentifier(OptionStyle.LONG, optionIdentifierWord);
 
-			const foundOptionDefinition: (OptionDefinition | undefined) = preCommandOptionDefinitions
-				.find((preCommandOptionDefinition: OptionDefinition) => {
+			const foundOptionDefinition: (OptionDefinition<DataT | void> | undefined) = preCommandOptionDefinitions
+				.find((preCommandOptionDefinition: OptionDefinition<DataT | void>) => {
 					return preCommandOptionDefinition.getIdentifiers()
 						.some((preCommandUsageOptionIdentifier: OptionIdentifier) => {
 							return preCommandUsageOptionIdentifier.equals(optionIdentifier);
@@ -483,8 +486,8 @@ function parseArgsByCommandsUsage(
 			const optionIdentifierChar: Char = (arg[j] as Char);
 			const optionIdentifier = new OptionIdentifier(OptionStyle.SHORT, optionIdentifierChar);
 
-			const foundOptionDefinition: (OptionDefinition | undefined) = preCommandOptionDefinitions
-				.find((preCommandOptionDefinition: OptionDefinition) => {
+			const foundOptionDefinition: (OptionDefinition<DataT | void> | undefined) = preCommandOptionDefinitions
+				.find((preCommandOptionDefinition: OptionDefinition<DataT | void>) => {
 					return preCommandOptionDefinition.getIdentifiers()
 						.some((preCommandUsageOptionIdentifier: OptionIdentifier) => {
 							return preCommandUsageOptionIdentifier.equals(optionIdentifier);

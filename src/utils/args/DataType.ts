@@ -10,10 +10,32 @@ import util from "util";
 import { compareEach } from "../arrays";
 import type { Inspectable } from "../Inspectable";
 import { quoteString } from "../strings";
+import { DataValue } from "./DataValue";
 
-export abstract class DataType implements Inspectable {
+export type DataT = (boolean | number | string | bigint | null | DataTRecord);
+interface DataTRecord {
+	[key: (string | number)]: DataT;
+}
 
-	abstract validate(value: string): unknown;
+export type DataTypeParseResult<T extends DataT = DataT> = {
+	readonly type: "success";
+	readonly value: T;
+} | {
+	readonly type: "failure/empty";
+} | {
+	readonly type: "failure/invalidEnumValue";
+	readonly enumValues: readonly [string, ...string[]],
+};
+
+export abstract class DataType<T extends DataT = DataT> implements Inspectable {
+
+	abstract parseString(str: string): DataTypeParseResult<T>;
+
+	abstract validate(value: unknown): value is T;
+
+	createValue(value: T): DataValue<T> {
+		return new DataValue(this, value);
+	}
 
 	abstract toString(): string;
 
@@ -24,9 +46,10 @@ export abstract class DataType implements Inspectable {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	): any;
 }
+deepFreeze(DataType);
 
 
-export class StringDataType extends DataType {
+export class StringDataType extends DataType<string> {
 
 	readonly #acceptEmpty: boolean;
 
@@ -45,8 +68,19 @@ export class StringDataType extends DataType {
 		return this.#acceptEmpty;
 	}
 
-	validate(value: string): boolean {
-		return (this.#acceptEmpty || (value.length > 0));
+	override parseString(str: string): DataTypeParseResult<string> {
+		if (!(this.validate(str))) {
+			return { type: "failure/empty" };
+		}
+
+		return {
+			type: "success",
+			value: str,
+		};
+	}
+
+	override validate(value: unknown): value is string {
+		return ((typeof value === "string") && (this.#acceptEmpty || (value.length > 0)));
 	}
 
 	override toString(): string {
@@ -63,11 +97,11 @@ export class StringDataType extends DataType {
 }
 deepFreeze(StringDataType);
 
-export class StringEnumDataType extends DataType {
+export class StringEnumDataType<UnionT extends string = string> extends DataType<UnionT> {
 
-	readonly #values: readonly [string, ...string[]];
+	readonly #values: readonly [UnionT, ...UnionT[]];
 
-	constructor(...values: [string, ...string[]]) {
+	constructor(...values: [UnionT, ...UnionT[]]) {
 		super();
 
 		if (values.length === 0) {
@@ -96,8 +130,26 @@ export class StringEnumDataType extends DataType {
 		return [...(this.#values)];
 	}
 
-	override validate(value: string): boolean {
-		return this.#values.includes(value);
+	override parseString(str: string): DataTypeParseResult<UnionT> {
+		if (str.length === 0) {
+			return { type: "failure/empty" };
+		}
+
+		if (!(this.validate(str))) {
+			return {
+				type: "failure/invalidEnumValue",
+				enumValues: this.#values,
+			};
+		}
+
+		return {
+			type: "success",
+			value: str,
+		};
+	}
+
+	override validate(value: unknown): value is UnionT {
+		return (this.#values as readonly unknown[]).includes(value);
 	}
 
 	override toString(): string {
@@ -123,19 +175,3 @@ export class StringEnumDataType extends DataType {
 	}
 }
 deepFreeze(StringEnumDataType);
-
-
-export interface DataType {
-	isString(): this is StringDataType;
-	isEnum(): this is StringEnumDataType;
-}
-
-DataType.prototype.isString = function(this: DataType): boolean {
-	return (this instanceof StringDataType);
-};
-
-DataType.prototype.isEnum = function(this: DataType): boolean {
-	return (this instanceof StringEnumDataType);
-};
-
-deepFreeze(DataType);

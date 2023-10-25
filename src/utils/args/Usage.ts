@@ -10,6 +10,7 @@ import util from "util";
 import { compareEach } from "../arrays";
 import type { Inspectable } from "../Inspectable";
 import { quoteString } from "../strings";
+import type { DataT } from "./DataType";
 import type { OperandDefinition } from "./OperandDefinition";
 import type { OptionDefinition } from "./OptionDefinition";
 
@@ -26,10 +27,15 @@ export abstract class Usage implements Inspectable {
 }
 
 
-function checkOptionDefinitions(optionDefinitions: readonly OptionDefinition[]) {
+function checkOptionDefinitions(optionDefinitions: readonly OptionDefinition<DataT | void>[]) {
 	compareEach(
 		optionDefinitions,
-		(optionDefinitionA: OptionDefinition, optionDefinitionB: OptionDefinition, indexA: number, indexB: number) => {
+		(
+			optionDefinitionA: OptionDefinition<DataT | void>,
+			optionDefinitionB: OptionDefinition<DataT | void>,
+			indexA: number,
+			indexB: number,
+		) => {
 			for (const optionIdentifierA of optionDefinitionA.getIdentifiers()) {
 				for (const optionIdentifierB of optionDefinitionB.getIdentifiers()) {
 					if (!(optionIdentifierA.equals(optionIdentifierB))) {
@@ -53,7 +59,7 @@ function checkOptionDefinitions(optionDefinitions: readonly OptionDefinition[]) 
 	);
 }
 
-function optionDefinitionsToString(optionDefinitions: readonly OptionDefinition[]): string {
+function optionDefinitionsToString(optionDefinitions: readonly OptionDefinition<DataT | void>[]): string {
 	let str: string = "";
 
 	for (const optionDefinition of optionDefinitions) {
@@ -69,10 +75,13 @@ function optionDefinitionsToString(optionDefinitions: readonly OptionDefinition[
 
 export class RegularUsage extends Usage {
 
-	readonly #optionDefinitions: readonly OptionDefinition[];
-	readonly #operandDefinitions: readonly OperandDefinition[];
+	readonly #optionDefinitions: readonly OptionDefinition<DataT | void>[];
+	readonly #operandDefinitions: readonly OperandDefinition<DataT>[];
 
-	constructor(optionDefinitions: readonly OptionDefinition[], operandDefinitions: readonly OperandDefinition[]) {
+	constructor(
+		optionDefinitions: readonly OptionDefinition<DataT | void>[],
+		operandDefinitions: readonly OperandDefinition<DataT>[],
+	) {
 		super();
 
 		checkOptionDefinitions(optionDefinitions);
@@ -87,11 +96,11 @@ export class RegularUsage extends Usage {
 		return new RegularUsage([], []);
 	}
 
-	getOptionDefinitions(): OptionDefinition[] {
+	getOptionDefinitions(): OptionDefinition<DataT | void>[] {
 		return [...(this.#optionDefinitions)];
 	}
 
-	getOperandDefinitions(): OperandDefinition[] {
+	getOperandDefinitions(): OperandDefinition<DataT>[] {
 		return [...(this.#operandDefinitions)];
 	}
 
@@ -128,11 +137,11 @@ deepFreeze(RegularUsage);
 
 export class CommandsUsage extends Usage {
 
-	readonly #preCommandOptionDefinitions: readonly OptionDefinition[];
+	readonly #preCommandOptionDefinitions: readonly OptionDefinition<DataT | void>[];
 	readonly #commandUsages: Map<string, Usage>;
 
 	constructor(
-		preCommandOptionDefinitions: readonly OptionDefinition[],
+		preCommandOptionDefinitions: readonly OptionDefinition<DataT | void>[],
 		commandUsages: (Iterable<readonly [name: string, usage: Usage]> | Record<string, Usage>),
 	) {
 		super();
@@ -164,7 +173,7 @@ export class CommandsUsage extends Usage {
 		deepFreeze(this);
 	}
 
-	getPreCommandOptionDefinitions(): OptionDefinition[] {
+	getPreCommandOptionDefinitions(): OptionDefinition<DataT | void>[] {
 		return [...(this.#preCommandOptionDefinitions)];
 	}
 

@@ -9,14 +9,13 @@ import type { InspectOptionsStylized } from "util";
 import util from "util";
 import type { Inspectable } from "../Inspectable";
 import type { DataType } from "./DataType";
-import { StringDataType } from "./DataType";
 
 export class OperandDefinition implements Inspectable {
 
 	readonly #name: string;
 	readonly #dataType: DataType;
 
-	constructor(name: string, dataType: DataType = StringDataType.rejectEmpty) {
+	constructor(name: string, dataType: DataType) {
 		if (name.length === 0) {
 			throw new InvalidArgumentException("Operand name must not be empty");
 		}
