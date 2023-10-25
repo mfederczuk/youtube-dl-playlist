@@ -34,12 +34,9 @@
 		"tsc": "npx tsc",
 		"babel": "find out -type f -name '*.js' -exec npx babel -o '{}' -- '{}' \\;",
 		"uglify": "find out -type f -name '*.js' -exec npx uglifyjs -o '{}' -- '{}' \\;",
-
 		"clean": "rm -rf out types",
-
 		"test-debug": "npx eslint src",
 		"test-release": "npx eslint --max-warnings 1 src",
-
 		"prepare": "npm run clean && npm run test-release && npm run tsc && npm run babel && npm run uglify"
 	},
 	"devDependencies": {
