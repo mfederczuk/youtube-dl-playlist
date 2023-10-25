@@ -21,6 +21,16 @@ import * as path from "path";
 import { DeepMutable } from "./mutable";
 import Playlist from "./Playlist";
 
+const rcFilePath = process.env["HOME"]?.replace(/$/, "/.youtube-dl-playlist-rc");
+
+const args = process.argv.slice(2);
+
+if(rcFilePath !== undefined && existsSync(rcFilePath)) {
+	args.reverse();
+	args.push(...readFileSync(rcFilePath).toString().split(/\s/));
+	args.reverse();
+}
+
 const scriptName = path.basename(process.argv[1]);
 const usage = `usage: ${scriptName} [--download [--high-effort]] [--sort] [--compact|--pretty=(tab|<number_of_spaces>)] <playlist_file>`;
 
@@ -35,7 +45,7 @@ interface CliInput {
 	});
 }
 
-const cliInput: CliInput = process.argv.slice(2).reduce((cliInput, arg) => {
+const cliInput: CliInput = args.reduce((cliInput, arg) => {
 	if(cliInput.processOptions && arg.startsWith("--")) {
 		if(arg === "--") {
 			cliInput.processOptions = false;
